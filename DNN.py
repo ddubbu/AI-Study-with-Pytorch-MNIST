@@ -61,7 +61,7 @@ test_loader = DataLoader(dataset=test_data, batch_size=batch_size, shuffle=True)
 ''' hyper parameters '''
 # total_batch_num = int(len(train_data) / batch_size)
 epochs = 10
-lr = 0.01
+lr = 0.001
 momentum = 0.5
 print_interval = 100
 model = DNN_Net()
@@ -80,10 +80,14 @@ for epoch in range(epochs):
     train_batch_loss = []
     train_batch_acc = []
     train_batch_num = len(train_loader)
+    print("train_batch_num: ", train_batch_num)
     for batch_idx, (x, target) in enumerate(train_loader):
         if batch_idx == 0:
             print('x.shape', x.shape, 'target.shape', target.shape)  # torch.Size([64, 1, 28, 28]) torch.Size([64])
             print(len(train_loader.dataset))  # 60000
+
+        # if batch_idx == 200:
+        #     break
 
         x, target = Variable(x), Variable(target)
         optimizer.zero_grad()
@@ -99,8 +103,8 @@ for epoch in range(epochs):
             print('epoch: {}\tbatch Step: {}\tLoss: {:.3f}\tAccuracy: {:.3f}'.format(
                     epoch, batch_idx, train_batch_loss[batch_idx], train_batch_acc[batch_idx]))
 
-    train_epoch_loss = np.sum(train_batch_loss)/train_batch_num
-    train_epoch_acc = np.sum(train_batch_acc)/train_batch_num
+    train_epoch_loss.append(np.sum(train_batch_loss)/train_batch_num)
+    train_epoch_acc.append(np.sum(train_batch_acc)/train_batch_num)
 
 
 
@@ -111,7 +115,11 @@ for epoch in range(epochs):
     test_batch_num = len(test_loader)
 
     with torch.no_grad():
-        for batch_idx, (x, target) in enumerate(test_loader): 
+        for batch_idx, (x, target) in enumerate(test_loader):
+
+            # if batch_idx == 10:
+            #     break
+
             x, target = Variable(x), Variable(target)
             output = model(x)
             test_batch_loss.append(loss.item()/batch_size*100)
@@ -119,15 +127,31 @@ for epoch in range(epochs):
             accuracy = prediction.eq(target.view_as(prediction)).sum().data/batch_size*100
             test_batch_acc.append(accuracy)
 
-    test_epoch_loss = np.sum(test_batch_loss)/test_batch_num
-    test_epoch_acc = np.sum(test_batch_acc)/test_batch_num
+
+    test_epoch_loss.append(np.sum(test_batch_loss)/test_batch_num)
+    test_epoch_acc.append(np.sum(test_batch_acc)/test_batch_num)
 
     ''' save results to numpy '''
     train_test_result = (train_epoch_loss, test_epoch_loss, train_epoch_acc, test_epoch_acc)
     np.save("result.npy", train_test_result)
 
-    plt.plot(train_epoch_loss, label='train_batch_acc')
-    plt.plot(test_epoch_loss, label='test_acc')
+    # print("train_epoch_loss:", train_epoch_loss)
+    # print("test_epoch_loss:", test_epoch_loss)
+    x = np.arange(start=1, stop=len(train_epoch_loss)+1, step=1)
+
+    fig = plt.figure(figsize=(12, 3))
+    ax1 = fig.add_subplot(1, 2, 1)
+    plt.plot(x, train_epoch_loss, label='train')
+    plt.plot(x, test_epoch_loss, label='test')
+    ax1.legend()
+    ax1.set(ylabel="Loss", xlabel='epoch')
+
+    ax2 = fig.add_subplot(1, 2, 2)
+    plt.plot(x, train_epoch_acc, label='train')
+    plt.plot(x, test_epoch_acc, label='test')
+    ax2.legend()
+    ax2.set(ylabel="Accuracy", xlabel='epoch')
+
     plt.show()
 
 torch.save(model, './model.pt')

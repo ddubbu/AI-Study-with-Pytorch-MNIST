@@ -10,3 +10,7 @@ https://teddylee777.github.io/pytorch/pytorch-mnist-dataloader-loading%ED%95%98%
 
 * follow code and model
 https://korchris.github.io/2019/08/23/mnist/
+
+* plot loss and accuracy
+https://m.blog.naver.com/PostView.nhn?blogId=jung2381187&logNo=220408468960&proxyReferer=https:%2F%2Fwww.google.com%2F   
+for that, I divide train_**batch**_loss or train_**epoch**_loss
