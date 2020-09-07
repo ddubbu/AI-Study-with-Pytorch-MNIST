@@ -48,7 +48,7 @@ train_data = MNIST(download_root, transform=mnist_transform, train=True, downloa
 test_data = MNIST(download_root, transform=mnist_transform, train=False, download=True)
 
 # 위 데이터를 batch size로 나눴구나
-batch_size = 64
+batch_size = 50
 # 938 = int(60000/batch_size)
 train_loader = DataLoader(dataset=train_data, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(dataset=test_data, batch_size=batch_size, shuffle=True)
@@ -69,11 +69,17 @@ optimizer = optim.Adam(model.parameters(), lr=lr)
 
 
 ''' Train '''
-model.train()
-train_loss = []
-train_acc = []
+# 통일성 있게 코드 짜자.
+train_epoch_loss = []
+train_epoch_acc = []
+test_epoch_loss = []
+test_epoch_acc = []
 
 for epoch in range(epochs):
+    model.train()
+    train_batch_loss = []
+    train_batch_acc = []
+    train_batch_num = len(train_loader)
     for batch_idx, (x, target) in enumerate(train_loader):
         if batch_idx == 0:
             print('x.shape', x.shape, 'target.shape', target.shape)  # torch.Size([64, 1, 28, 28]) torch.Size([64])
@@ -84,20 +90,45 @@ for epoch in range(epochs):
         output = model(x)
         loss = F.nll_loss(output, target)
         loss.backward()    # calc gradients
-        train_loss.append(loss.item())
-        # from tensor -> get value loss.item() or loss.data
+        train_batch_loss.append(loss.item()/batch_size*100) # from tensor -> get value loss.item() or loss.data
         optimizer.step()   # update gradients
         prediction = output.argmax(dim=1, keepdims=True)
         accuracy = prediction.eq(target.view_as(prediction)).sum().data/batch_size*100
-        train_acc.append(accuracy)
+        train_batch_acc.append(accuracy)
         if batch_idx % print_interval == 0:
-            print('epoch: {}\tbatch Step: {}\tLoss: {:.3f}\tAccuracy: {:.3f}'.format(epoch, batch_idx, loss.item(), accuracy))
+            print('epoch: {}\tbatch Step: {}\tLoss: {:.3f}\tAccuracy: {:.3f}'.format(
+                    epoch, batch_idx, train_batch_loss[batch_idx], train_batch_acc[batch_idx]))
+
+    train_epoch_loss = np.sum(train_batch_loss)/train_batch_num
+    train_epoch_acc = np.sum(train_batch_acc)/train_batch_num
 
 
-    np.save('train_loss.npy', train_loss)
-    np.save('train_acc.npy', train_acc)
 
-    plt.plot(train_loss)
-    plt.plot(train_acc)
+    ''' Test '''
+    model.eval()
+    test_batch_loss = []
+    test_batch_acc = []
+    test_batch_num = len(test_loader)
+
+    with torch.no_grad():
+        for batch_idx, (x, target) in enumerate(test_loader): 
+            x, target = Variable(x), Variable(target)
+            output = model(x)
+            test_batch_loss.append(loss.item()/batch_size*100)
+            prediction = output.argmax(dim=1, keepdims=True)
+            accuracy = prediction.eq(target.view_as(prediction)).sum().data/batch_size*100
+            test_batch_acc.append(accuracy)
+
+    test_epoch_loss = np.sum(test_batch_loss)/test_batch_num
+    test_epoch_acc = np.sum(test_batch_acc)/test_batch_num
+
+    ''' save results to numpy '''
+    train_test_result = (train_epoch_loss, test_epoch_loss, train_epoch_acc, test_epoch_acc)
+    np.save("result.npy", train_test_result)
+
+    plt.plot(train_epoch_loss, label='train_batch_acc')
+    plt.plot(test_epoch_loss, label='test_acc')
+    plt.show()
 
 torch.save(model, './model.pt')
+
