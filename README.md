@@ -11,6 +11,14 @@ Pytorch - 1.5.1
 솔직히 Model class 여러개 짜 놓고, 반복 실험하면 될 것 같단 말이지??  
 저장 방법도, 3개 중에 option으로 조절했듯이
 
+## How to use Colab GPU
+1. reference1 : setting
+https://theorydb.github.io/dev/2019/08/23/dev-ml-colab/
+
+2. reference2 : .to(device)
+https://tutorials.pytorch.kr/beginner/blitz/cifar10_tutorial.html  
+
+
 ## Pytorch
 1. document  
 https://pytorch.org/docs/stable/nn.html#linear-layers
@@ -25,9 +33,10 @@ https://tutorials.pytorch.kr/beginner/Intro_to_TorchScript_tutorial.html
             forward에서는 그 layer들을 조합해서 쓰는 거고
 
 3. 함수 summary
-    <pre><code>from torch summary import summary  
-    model = DNN_Net()  
-    summary(model, (50, 1, 28, 28)) # with input size
+    <pre><code>from torch summary import summary   
+    summary(model, input_size=(50, 1, 28, 28)) 
+    # DNN은 (1, 28, 28) 도 가능했어
+    # CNN은 (1, 28, 28) = (channel, H, W) 만 가능했고
     </code></pre>
 
 4. train_parameter 접근법
@@ -125,7 +134,7 @@ https://lovit.github.io/machine%20learning/pytorch/2018/12/05/pytorch_l1_regular
         - 모든 layer의 weight 를 모으는 거임?  
     Q2. weight tensor가 아닌 param을 모으는 것 같은데, back-propagation 에 적용되는거임??
 
-## How to use "BatchNrom"
+## How to use "BatchNorm"
 
 1. why Batch_norm before ReLU?
 2. learnable parameter ?
@@ -135,6 +144,8 @@ https://sy-programmingstudy.tistory.com/10
 테스트시의 배치 정규화
 
 ## CNN.py
+
+1. 이런저런 이야기  
 나의 궁극적인 pytorch 사용 목적이랄까?  
 CNN을 편하게 쌓고 싶다. 사실, tf.nn도 sequential 하게 할 수 있잖아.  
 굳이 꾸역꾸역 weight tensor 따로 정의하고, 사용했는데,  
@@ -144,8 +155,20 @@ CNN을 편하게 쌓고 싶다. 사실, tf.nn도 sequential 하게 할 수 있�
 N' = (N+2P-F)/S + 1 에서 N' 이라던가, P가 적절치 않다던지 ㅜㅜ
 
 
-### 확인하고 싶은거
-1. input shape이 정사각형꼴이 아닐때, 2D conv를 차원을 계산하면서 사용해야하나?  
-2. conv model은 layer마다, 선을 인식, 도형, ..., 고양이를 인식한다는데  
-중간 단계를 어떻게 인식함? 
+2. 확인하고 싶은거
+    * input shape이 정사각형꼴이 아닐때, 2D conv를 차원을 계산하면서 사용해야하나?  
+    * conv model은 layer마다, 선을 인식, 도형, ..., 고양이를 인식한다는데  
+    중간 단계를 어떻게 인식함? 
+    
+3. simple CNN 따라하기
+https://wikidocs.net/63618
 
+
+## loss function
+1. F.nll_loss() : negative log likelihodd
+https://wikidocs.net/60572  
+F.softmax() + torch.log() = F.log_softmax()  
+F.log_softmax() + F.nll_loss() = F.cross_entropy()  
+
+
+## ResNet.py
